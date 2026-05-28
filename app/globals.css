@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+@theme {
+  --color-cream: #faf8f4;
+  --color-ink: #1a1a1a;
+  --color-muted: #777777;
+  --color-line: #e0d8c8;
+  --color-shadow: #6b4f2a;
+  --color-gold: #c9a76b;
+  --color-deep: #1a120b;
+  --font-body: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ornate: 'Cormorant Garamond', Georgia, serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html, body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.font-ornate {
+  font-family: var(--font-ornate);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.ornate-frame {
+  border: 1px solid var(--color-shadow);
+  background: var(--color-deep);
+  color: var(--color-gold);
+  padding: 32px;
+  position: relative;
 }
+.ornate-frame::before,
+.ornate-frame::after {
+  content: "❦";
+  position: absolute;
+  font-size: 18px;
+  color: var(--color-gold);
+}
+.ornate-frame::before { top: 8px; left: 12px; }
+.ornate-frame::after { bottom: 8px; right: 12px; }
