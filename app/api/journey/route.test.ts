@@ -116,3 +116,49 @@ describe('POST /api/journey — advance (stages 2-4)', () => {
     expect(userPrompt).toContain('A choice');
   });
 });
+
+const stage4Stage: Stage = {
+  number: 4, name: '승화', narrative: 'n',
+  choices: [
+    { id: 'a', text: '통합한다' }, { id: 'b', text: '받아들인다' }, { id: 'c', text: '품는다' },
+  ],
+};
+
+const stateAfterStage4: JourneyState = {
+  ...stateAfterStage1,
+  history: [
+    { stage: 1, chosenId: 'a', chosenText: 'A choice' },
+    { stage: 2, chosenId: 'b', chosenText: '잠긴다' },
+    { stage: 3, chosenId: 'a', chosenText: '단련의 길' },
+  ],
+  currentStage: stage4Stage,
+};
+
+const validFinalResponse = {
+  legacyCard: {
+    title: '침묵의 항해를 마친 자',
+    chronicleSummary: '한 잠수부가 살았다. 침묵의 해류가 그를 삼켰다. 그는 침묵을 자기 진주로 삼았다.',
+    heroMonologue: '"가장 깊은 곳에서 나는 듣는 법을 배웠다."',
+    visualPrompt: 'Art Nouveau ornamental frame, 2D illustrative texture, a diver with a luminous pearl',
+  },
+};
+
+describe('POST /api/journey — final (stage 5)', () => {
+  beforeEach(() => mockClaude.mockReset());
+
+  it('returns legacy card when current stage is 4', async () => {
+    mockClaude.mockResolvedValue(validFinalResponse);
+    const res = await POST(makeReq({ type: 'advance', state: stateAfterStage4, choiceId: 'a' }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(validFinalResponse);
+  });
+
+  it('builds final prompt with allegory and history', async () => {
+    mockClaude.mockResolvedValue(validFinalResponse);
+    await POST(makeReq({ type: 'advance', state: stateAfterStage4, choiceId: 'a' }));
+    const userPrompt = mockClaude.mock.calls[0][0].userPrompt as string;
+    expect(userPrompt).toContain('LegacyCard');
+    expect(userPrompt).toContain('Art Nouveau');
+    expect(userPrompt).toContain('A choice');
+  });
+});

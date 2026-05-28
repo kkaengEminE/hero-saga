@@ -3,9 +3,15 @@ import {
   JourneyRequestSchema,
   BootstrapResponseSchema,
   AdvanceStageResponseSchema,
+  AdvanceFinalResponseSchema,
 } from '@/core/schema';
 import { callClaudeJson } from '@/core/claude';
-import { SYSTEM_PROMPT, buildBootstrapPrompt, buildAdvancePrompt } from '@/core/prompts';
+import {
+  SYSTEM_PROMPT,
+  buildBootstrapPrompt,
+  buildAdvancePrompt,
+  buildFinalPrompt,
+} from '@/core/prompts';
 import type { BootstrapRequest, AdvanceRequest } from '@/core/types';
 import type { ZodSchema } from 'zod';
 
@@ -52,7 +58,16 @@ async function handleAdvance(req: AdvanceRequest) {
     return NextResponse.json(result, { status: 200 });
   }
 
-  return NextResponse.json({ error: 'final stage not implemented' }, { status: 501 });
+  if (nextStageNum === 5) {
+    const userPrompt = buildFinalPrompt(req.state, req.choiceId);
+    const result = await callAndValidate(AdvanceFinalResponseSchema, SYSTEM_PROMPT, userPrompt);
+    return NextResponse.json(result, { status: 200 });
+  }
+
+  return NextResponse.json(
+    { error: `unexpected next stage: ${nextStageNum}` },
+    { status: 400 },
+  );
 }
 
 export async function POST(req: Request): Promise<Response> {
