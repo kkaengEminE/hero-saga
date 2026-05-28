@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildBootstrapPrompt, buildAdvancePrompt } from './prompts';
+import { buildBootstrapPrompt, buildAdvancePrompt, buildFinalPrompt } from './prompts';
 import type { JourneyState } from './types';
 
 const sampleState: JourneyState = {
@@ -102,5 +102,32 @@ describe('buildAdvancePrompt — invalid stage', () => {
   it('throws on stage 1 or 5', () => {
     expect(() => buildAdvancePrompt(sampleState, 'a', 1 as never)).toThrow();
     expect(() => buildAdvancePrompt(sampleState, 'a', 5 as never)).toThrow();
+  });
+});
+
+describe('buildFinalPrompt', () => {
+  it('includes allegory frame', () => {
+    const prompt = buildFinalPrompt(sampleState, 'c');
+    expect(prompt).toContain('침묵의 바다');
+    expect(prompt).toContain('호흡의 진주');
+  });
+
+  it('requests LegacyCard fields', () => {
+    const prompt = buildFinalPrompt(sampleState, 'c');
+    expect(prompt).toContain('title');
+    expect(prompt).toContain('chronicleSummary');
+    expect(prompt).toContain('heroMonologue');
+    expect(prompt).toContain('visualPrompt');
+  });
+
+  it('demands exactly 3 sentences for chronicleSummary', () => {
+    const prompt = buildFinalPrompt(sampleState, 'c');
+    expect(prompt).toMatch(/정확히 3문장/);
+  });
+
+  it('demands English visualPrompt with Art Nouveau keywords', () => {
+    const prompt = buildFinalPrompt(sampleState, 'c');
+    expect(prompt).toContain('Art Nouveau');
+    expect(prompt).toMatch(/영문|English/);
   });
 });

@@ -137,3 +137,39 @@ ${instr.body}
 
 위 JSON 외의 어떤 텍스트도 출력하지 마십시오.`;
 }
+
+export function buildFinalPrompt(state: JourneyState, choiceId: ChoiceId): string {
+  const justChosenText =
+    state.currentStage?.choices.find((c) => c.id === choiceId)?.text ?? '(미상)';
+
+  return `[알레고리 (불변)]
+world: ${state.allegory.world}
+protagonist: ${state.allegory.protagonist}
+shadow: ${state.allegory.shadow}
+questObject: ${state.allegory.questObject}
+
+[지금까지의 선택]
+${formatHistory(state)}
+- (직전) Stage ${state.currentStage?.number}에서 "${justChosenText}" 선택
+
+[과제] Stage 5 (공향) — 다음 단계가 아니라 LegacyCard를 생성한다.
+
+- title: 시적·우아한 1줄 한국어. 예: "침묵의 항해를 마친 자"
+- chronicleSummary: 정확히 3문장. 각성 → 균열/연마 → 승화의 흐름.
+- heroMonologue: 1~2줄. 따옴표로 감쌌을 때 카드에 새겨질 시구.
+                  트라우마의 변형된 의미를 응축한다.
+- visualPrompt: 영문(English). "Art Nouveau ornamental frame, 2D illustrative texture, ..." 형태.
+                  알레고리 상징(world/shadow/questObject)을 풍부하게 시각화.
+
+[출력 JSON 스키마]
+{
+  "legacyCard": {
+    "title": string,
+    "chronicleSummary": string,
+    "heroMonologue": string,
+    "visualPrompt": string
+  }
+}
+
+위 JSON 외의 어떤 텍스트도 출력하지 마십시오.`;
+}
