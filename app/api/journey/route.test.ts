@@ -36,3 +36,41 @@ describe('POST /api/journey — request validation', () => {
     expect(res.status).toBe(400);
   });
 });
+
+const validBootstrapResponse = {
+  allegory: { world: 'w', protagonist: 'p', shadow: 's', questObject: 'q' },
+  stage: {
+    number: 1, name: '각성', narrative: 'n',
+    choices: [
+      { id: 'a', text: 'x' }, { id: 'b', text: 'y' }, { id: 'c', text: 'z' },
+    ],
+  },
+};
+
+describe('POST /api/journey — bootstrap', () => {
+  beforeEach(() => mockClaude.mockReset());
+
+  it('returns allegory + stage on success', async () => {
+    mockClaude.mockResolvedValue(validBootstrapResponse);
+    const res = await POST(makeReq({ type: 'bootstrap', category: 'loss', rawInput: 'hi' }));
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data).toEqual(validBootstrapResponse);
+  });
+
+  it('returns safetyEscalation when Claude returns it', async () => {
+    mockClaude.mockResolvedValue({ safetyEscalation: true });
+    const res = await POST(makeReq({ type: 'bootstrap', category: 'loss', rawInput: 'i want to die' }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ safetyEscalation: true });
+  });
+
+  it('passes system prompt and bootstrap user prompt to Claude', async () => {
+    mockClaude.mockResolvedValue(validBootstrapResponse);
+    await POST(makeReq({ type: 'bootstrap', category: 'fear', rawInput: '깊은 물이 무섭다.' }));
+    const callArg = mockClaude.mock.calls[0][0];
+    expect(callArg.systemPrompt).toContain('Trauma-to-Epic');
+    expect(callArg.userPrompt).toContain('fear');
+    expect(callArg.userPrompt).toContain('깊은 물이 무섭다.');
+  });
+});
