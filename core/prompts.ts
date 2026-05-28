@@ -1,3 +1,5 @@
+import type { Category } from './types';
+
 export const SYSTEM_PROMPT = `당신은 "Trauma-to-Epic Narrative Engine"입니다.
 유저의 불쾌한 경험·트라우마·감정을 5단계 영웅 서사로 변환합니다.
 
@@ -27,3 +29,39 @@ export const SYSTEM_PROMPT = `당신은 "Trauma-to-Epic Narrative Engine"입니�
 - Stage 3 (연마): 시련의 시간. 조력자·내적 자원·기술 습득.
 - Stage 4 (승화): 클라이맥스. 그림자와의 최종 대면. 폭력이 아닌 수용·이해·내적 변형.
 - Stage 5 (공향): 귀환. LegacyCard 생성 (다음 단계가 아니라 회고적 카드).`;
+
+export function buildBootstrapPrompt(category: Category, rawInput: string): string {
+  return `[입력]
+카테고리: ${category}
+원본 입력: ${rawInput}
+
+[과제]
+(1) AllegoryFrame 확립 — 이후 모든 단계의 세계관
+  - world: 한 줄. 트라우마 정서를 담은 판타지 세계
+  - protagonist: 한 줄. 유저 가치/욕망에서 추출한 정체성
+  - shadow: 한 줄. 트라우마의 알레고리적 형태
+  - questObject: 한 줄. 추구할 상징물
+
+(2) Stage 1 (각성)
+  - narrative: 3~5문장. 주인공의 평범한 일상, 정체성, 가치/욕망.
+                트라우마는 아직 등장 안 함 — 평온의 순간.
+  - choices: 정확히 3개. "주인공이 가장 중요하게 여기는 것"을 드러냄.
+                각 choice.text는 1줄, 추상명사·시각적 이미지.
+
+[출력 JSON 스키마]
+{
+  "allegory": { "world": string, "protagonist": string, "shadow": string, "questObject": string },
+  "stage": {
+    "number": 1,
+    "name": "각성",
+    "narrative": string,
+    "choices": [
+      { "id": "a", "text": string },
+      { "id": "b", "text": string },
+      { "id": "c", "text": string }
+    ]
+  }
+}
+
+위 JSON 외의 어떤 텍스트도 출력하지 마십시오.`;
+}
