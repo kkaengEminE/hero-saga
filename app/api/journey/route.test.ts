@@ -74,3 +74,45 @@ describe('POST /api/journey — bootstrap', () => {
     expect(callArg.userPrompt).toContain('깊은 물이 무섭다.');
   });
 });
+
+const stateAfterStage1: JourneyState = {
+  category: 'loss',
+  allegory: { world: 'w', protagonist: 'p', shadow: 's', questObject: 'q' },
+  history: [],
+  currentStage: {
+    number: 1, name: '각성', narrative: 'n',
+    choices: [
+      { id: 'a', text: 'A choice' }, { id: 'b', text: 'B' }, { id: 'c', text: 'C' },
+    ],
+  },
+  legacyCard: null,
+};
+
+const validStage2Response = {
+  stage: {
+    number: 2, name: '균열', narrative: '균열이 일어났다.',
+    choices: [
+      { id: 'a', text: '돌아선다' }, { id: 'b', text: '잠긴다' }, { id: 'c', text: '듣는다' },
+    ],
+  },
+};
+
+describe('POST /api/journey — advance (stages 2-4)', () => {
+  beforeEach(() => mockClaude.mockReset());
+
+  it('returns stage 2 when current stage is 1', async () => {
+    mockClaude.mockResolvedValue(validStage2Response);
+    const res = await POST(makeReq({ type: 'advance', state: stateAfterStage1, choiceId: 'a' }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(validStage2Response);
+  });
+
+  it('builds advance prompt with target stage 2', async () => {
+    mockClaude.mockResolvedValue(validStage2Response);
+    await POST(makeReq({ type: 'advance', state: stateAfterStage1, choiceId: 'a' }));
+    const userPrompt = mockClaude.mock.calls[0][0].userPrompt as string;
+    expect(userPrompt).toContain('Stage 2');
+    expect(userPrompt).toContain('균열');
+    expect(userPrompt).toContain('A choice');
+  });
+});

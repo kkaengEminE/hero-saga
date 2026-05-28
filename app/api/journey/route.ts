@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import {
   JourneyRequestSchema,
   BootstrapResponseSchema,
+  AdvanceStageResponseSchema,
 } from '@/core/schema';
 import { callClaudeJson } from '@/core/claude';
-import { SYSTEM_PROMPT, buildBootstrapPrompt } from '@/core/prompts';
-import type { BootstrapRequest } from '@/core/types';
+import { SYSTEM_PROMPT, buildBootstrapPrompt, buildAdvancePrompt } from '@/core/prompts';
+import type { BootstrapRequest, AdvanceRequest } from '@/core/types';
 import type { ZodSchema } from 'zod';
 
 export const runtime = 'nodejs';
@@ -35,6 +36,25 @@ async function handleBootstrap(req: BootstrapRequest) {
   return NextResponse.json(result, { status: 200 });
 }
 
+async function handleAdvance(req: AdvanceRequest) {
+  const current = req.state.currentStage;
+  if (!current) {
+    return NextResponse.json(
+      { error: 'advance requires currentStage in state' },
+      { status: 400 },
+    );
+  }
+  const nextStageNum = current.number + 1;
+
+  if (nextStageNum === 2 || nextStageNum === 3 || nextStageNum === 4) {
+    const userPrompt = buildAdvancePrompt(req.state, req.choiceId, nextStageNum);
+    const result = await callAndValidate(AdvanceStageResponseSchema, SYSTEM_PROMPT, userPrompt);
+    return NextResponse.json(result, { status: 200 });
+  }
+
+  return NextResponse.json({ error: 'final stage not implemented' }, { status: 501 });
+}
+
 export async function POST(req: Request): Promise<Response> {
   let body: unknown;
   try {
@@ -55,7 +75,7 @@ export async function POST(req: Request): Promise<Response> {
     if (parsed.data.type === 'bootstrap') {
       return await handleBootstrap(parsed.data);
     }
-    return NextResponse.json({ error: 'advance not implemented' }, { status: 501 });
+    return await handleAdvance(parsed.data);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
