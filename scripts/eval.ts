@@ -1,4 +1,6 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+config({ path: '.env.local' });
+
 import { callClaudeJson } from '../core/claude';
 import {
   SYSTEM_PROMPT,
