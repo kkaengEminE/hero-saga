@@ -1,4 +1,5 @@
-import 'server-only';
+// Note: imports Anthropic SDK which requires server runtime (process.env.ANTHROPIC_API_KEY).
+// Only imported from app/api/journey/route.ts and scripts/eval.ts — never from client code.
 import Anthropic from '@anthropic-ai/sdk';
 
 const MODEL = 'claude-sonnet-4-6';
